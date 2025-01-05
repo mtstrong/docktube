@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "docktube": {
+      "commandName": "Project"
+    },
+    "Container (Dockerfile)": {
+      "commandName": "Docker"
+    }
+  }
+}
