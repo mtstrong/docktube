@@ -13,9 +13,11 @@ using YoutubeExplode.Videos.Streams;
 using static System.Net.Mime.MediaTypeNames;
 using static System.Net.WebRequestMethods;
 using Xabe.FFmpeg.Downloader;
-using FFMpegCore.Enums;
 using System.Resources;
 using Xabe.FFmpeg;
+using EzSmb;
+using System.IO;
+using System.Text;
 
 class Program
 {
@@ -50,7 +52,16 @@ class Program
 
         string output = Path.ChangeExtension(audioFile, "mp3");
 
-        var conversion = await FFmpeg.Conversions.FromSnippet.Convert(audioFile, Path.Combine(workingDir, output));
+        var podcastFile = Path.Combine(workingDir, output);
+        var conversion = await FFmpeg.Conversions.FromSnippet.Convert(audioFile, podcastFile);
         await conversion.Start();
+
+        // Get folder Node.
+        string user = Environment.GetEnvironmentVariable("SMB_USER");
+        string password = Environment.GetEnvironmentVariable("SMB_PASSWORD");
+        var folder = await EzSmb.Node.GetNode(@"192.168.1.38\podcasts", user, password);
+        var fs = System.IO.File.Open(podcastFile, FileMode.Open, FileAccess.Read, FileShare.None);
+        var ok = await folder.Write(fs, $"{vidTitle}.mp3");
+        Console.WriteLine($"File operation: {ok}");
     }
 }
