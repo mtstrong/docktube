@@ -16,17 +16,31 @@ class Program
 {
     static async Task Main(string[] args)
     {
+        var podcastFile = await GetAudioFileFromYoutubePlaylist("https://youtube.com/channel/UCLe_q9axMaeTbjN0hy1Z9xA");
+        var technoTimeFile = await GetAudioFileFromYoutubePlaylist("https://youtube.com/channel/UCEv-LBP68lHl3JNJ25RT16g");
+
+        // Get folder Node.
+        string smbPath = Environment.GetEnvironmentVariable("SMB_PATH");
+        string user = Environment.GetEnvironmentVariable("SMB_USER");
+        string password = Environment.GetEnvironmentVariable("SMB_PASSWORD");
+        var folder = await EzSmb.Node.GetNode(smbPath, user, password);
+        var fs = System.IO.File.Open(podcastFile, FileMode.Open, FileAccess.Read, FileShare.None);
+        var ok = await folder.Write(fs, podcastFile);
+        Console.WriteLine($"File operation: {ok}");
+    }
+
+    static async Task<string> GetAudioFileFromYoutubePlaylist(string channelUrl)
+    {
         var youtube = new YoutubeClient();
-        var channelUrl = "https://youtube.com/channel/UCLe_q9axMaeTbjN0hy1Z9xA";
         var channel = await youtube.Channels.GetAsync(channelUrl);
 
         var title = channel.Title;
         var videos = await youtube.Channels.GetUploadsAsync(channelUrl).Where(x => x.Duration > TimeSpan.FromMinutes(30));
 
         var latest = videos.First();
-        var vidTitle = latest.Title; // "Collections - Blender 2.80 Fundamentals"
-        var author = latest.Author.ChannelTitle; // "Blender"
-        var duration = latest.Duration; // 00:07:20
+        var vidTitle = latest.Title;
+        var author = latest.Author.ChannelTitle;
+        var duration = latest.Duration;
 
         var streamManifest = await youtube.Videos.Streams.GetManifestAsync(latest.Url);
 
@@ -47,15 +61,7 @@ class Program
 
         var podcastFile = Path.Combine(workingDir, output);
         var conversion = await FFmpeg.Conversions.FromSnippet.Convert(audioFile, podcastFile);
-        await conversion.Start();
-
-        // Get folder Node.
-        string smbPath = Environment.GetEnvironmentVariable("SMB_PATH");
-        string user = Environment.GetEnvironmentVariable("SMB_USER");
-        string password = Environment.GetEnvironmentVariable("SMB_PASSWORD");
-        var folder = await EzSmb.Node.GetNode(smbPath, user, password);
-        var fs = System.IO.File.Open(podcastFile, FileMode.Open, FileAccess.Read, FileShare.None);
-        var ok = await folder.Write(fs, $"{vidTitle}.mp3");
-        Console.WriteLine($"File operation: {ok}");
+        var result = await conversion.Start();
+        return output;
     }
 }
