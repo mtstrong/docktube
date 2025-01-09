@@ -1,23 +1,16 @@
 ﻿namespace docktube;
 
-using AngleSharp.Dom;
 using System;
-using System.IO.Compression;
-using System.Net.Http;
 using System.Reflection;
 using System.Threading.Tasks;
 using YoutubeExplode;
 using YoutubeExplode.Common;
-using YoutubeExplode.Videos;
 using YoutubeExplode.Videos.Streams;
 using static System.Net.Mime.MediaTypeNames;
 using static System.Net.WebRequestMethods;
 using Xabe.FFmpeg.Downloader;
-using System.Resources;
 using Xabe.FFmpeg;
-using EzSmb;
 using System.IO;
-using System.Text;
 
 class Program
 {
@@ -57,9 +50,10 @@ class Program
         await conversion.Start();
 
         // Get folder Node.
+        string smbPath = Environment.GetEnvironmentVariable("SMB_PATH");
         string user = Environment.GetEnvironmentVariable("SMB_USER");
         string password = Environment.GetEnvironmentVariable("SMB_PASSWORD");
-        var folder = await EzSmb.Node.GetNode(@"192.168.1.38\podcasts", user, password);
+        var folder = await EzSmb.Node.GetNode(smbPath, user, password);
         var fs = System.IO.File.Open(podcastFile, FileMode.Open, FileAccess.Read, FileShare.None);
         var ok = await folder.Write(fs, $"{vidTitle}.mp3");
         Console.WriteLine($"File operation: {ok}");
