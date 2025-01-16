@@ -16,9 +16,19 @@ class Program
 {
     static async Task Main(string[] args)
     {
-        var podcastFile = await GetAudioFileFromYoutubePlaylist("https://youtube.com/channel/UCLe_q9axMaeTbjN0hy1Z9xA");
-        var technoTimeFile = await GetAudioFileFromYoutubePlaylist("https://youtube.com/channel/UCEv-LBP68lHl3JNJ25RT16g");
+        var podcastFiles = new List<string>();
+        var calebHammerFile = await GetAudioFileFromYoutubePlaylist("https://youtube.com/channel/UCLe_q9axMaeTbjN0hy1Z9xA");
+        podcastFiles.Add(calebHammerFile);
+        var calebHammerUpdateFile = await GetAudioFileFromYoutubePlaylist("https://youtube.com/channel/UCAqAp1uh_5-tmEimhSqtoyw");
+        podcastFiles.Add(calebHammerUpdateFile);
+        var technoTimeFile = await GetAudioFileFromYoutubePlaylist("https://youtube.com/channel/UCEv-LBP68lHl3JNJ25RT16g"); 
+        podcastFiles.Add(technoTimeFile);
 
+        CopyToShare(podcastFiles);
+    }
+
+    static void CopyToShare(List<string> files)
+    {
         // Get folder Node.
         string smbPath = Environment.GetEnvironmentVariable("SMB_PATH");
         string user = Environment.GetEnvironmentVariable("SMB_USER");
