@@ -113,13 +113,6 @@ class Program
         var response = await client.PostAsync("https://api.pushover.net/1/messages.json", new
         FormUrlEncodedContent(parameters));
 
-        if(response.IsSuccessStatusCode)
-        {
-            return true;
-        }
-        else
-        {
-            return false;
-        }
+        return response.IsSuccessStatusCode;
     }
 }
