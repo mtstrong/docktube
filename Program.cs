@@ -78,6 +78,7 @@ class Program
             var audio = await youtube.Videos.Streams.GetAsync(audioStreamInfo);
             var audioFile = Path.Combine(workingDir, $"{vidTitle}.mp4");
             await youtube.Videos.Streams.DownloadAsync(audioStreamInfo, audioFile);
+            await SendPushoverNotification($"Downloaded {vidTitle}");
 
             FFmpeg.SetExecutablesPath(workingDir);
             await FFmpegDownloader.GetLatestVersion(FFmpegVersion.Official, workingDir);
@@ -104,8 +105,8 @@ class Program
 
         var parameters = new Dictionary<string, string>
         {
-            ["token"] = "APP_TOKEN",
-            ["user"] = "USER_KEY",
+            ["token"] = token,
+            ["user"] = key,
             ["message"] = message
         };
         using var client = new HttpClient();
