@@ -21,8 +21,9 @@ class Program
         podcastFiles.Add(calebHammerFile);
         var calebHammerUpdateFile = await GetAudioFileFromYoutubePlaylist("https://youtube.com/channel/UCAqAp1uh_5-tmEimhSqtoyw");
         podcastFiles.Add(calebHammerUpdateFile);
-        var technoTimeFile = await GetAudioFileFromYoutubePlaylist("https://youtube.com/channel/UCEv-LBP68lHl3JNJ25RT16g"); 
-        podcastFiles.Add(technoTimeFile);
+        //issues with live feeds
+        //var technoTimeFile = await GetAudioFileFromYoutubePlaylist("https://youtube.com/channel/UCEv-LBP68lHl3JNJ25RT16g"); 
+        //podcastFiles.Add(technoTimeFile);
 
         await CopyToShare(podcastFiles);
     }
