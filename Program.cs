@@ -17,10 +17,18 @@ class Program
     static async Task Main(string[] args)
     {
         var podcastFiles = new List<string>();
+        
         var calebHammerFile = await GetAudioFileFromYoutubePlaylist("https://youtube.com/channel/UCLe_q9axMaeTbjN0hy1Z9xA");
-        podcastFiles.Add(calebHammerFile);
+        if (!String.IsNullOrEmpty(calebHammerFile))
+        {
+            podcastFiles.Add(calebHammerFile);
+        }
         var calebHammerUpdateFile = await GetAudioFileFromYoutubePlaylist("https://youtube.com/channel/UCAqAp1uh_5-tmEimhSqtoyw");
-        podcastFiles.Add(calebHammerUpdateFile);
+        if (!String.IsNullOrEmpty(calebHammerUpdateFile))
+        {
+            podcastFiles.Add(calebHammerUpdateFile);
+        }
+
         //issues with live feeds
         //var technoTimeFile = await GetAudioFileFromYoutubePlaylist("https://youtube.com/channel/UCEv-LBP68lHl3JNJ25RT16g"); 
         //podcastFiles.Add(technoTimeFile);
@@ -56,26 +64,61 @@ class Program
         var author = latest.Author.ChannelTitle;
         var duration = latest.Duration;
 
-        var streamManifest = await youtube.Videos.Streams.GetManifestAsync(latest.Url);
+        string output = String.Empty;
+        try
+        {
+            var streamManifest = await youtube.Videos.Streams.GetManifestAsync(latest.Url);
 
-        var audioStreamInfo = streamManifest
-            .GetAudioStreams()
-            .Where(s => s.Container == Container.Mp4)
-            .GetWithHighestBitrate();
+            var audioStreamInfo = streamManifest
+                .GetAudioStreams()
+                .Where(s => s.Container == Container.Mp4)
+                .GetWithHighestBitrate();
 
-        var workingDir = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
-        var audio = await youtube.Videos.Streams.GetAsync(audioStreamInfo);
-        var audioFile = Path.Combine(workingDir, $"{vidTitle}.mp4");
-        await youtube.Videos.Streams.DownloadAsync(audioStreamInfo, audioFile);
+            var workingDir = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
+            var audio = await youtube.Videos.Streams.GetAsync(audioStreamInfo);
+            var audioFile = Path.Combine(workingDir, $"{vidTitle}.mp4");
+            await youtube.Videos.Streams.DownloadAsync(audioStreamInfo, audioFile);
 
-        FFmpeg.SetExecutablesPath(workingDir);
-        await FFmpegDownloader.GetLatestVersion(FFmpegVersion.Official, workingDir);
+            FFmpeg.SetExecutablesPath(workingDir);
+            await FFmpegDownloader.GetLatestVersion(FFmpegVersion.Official, workingDir);
 
-        string output = Path.ChangeExtension(audioFile, "mp3");
+            output = Path.ChangeExtension(audioFile, "mp3");
 
-        var podcastFile = Path.Combine(workingDir, output);
-        var conversion = await FFmpeg.Conversions.FromSnippet.Convert(audioFile, podcastFile);
-        var result = await conversion.Start();
+            var podcastFile = Path.Combine(workingDir, output);
+            var conversion = await FFmpeg.Conversions.FromSnippet.Convert(audioFile, podcastFile);
+            var result = await conversion.Start();
+        }
+        catch(Exception ex)
+        {
+            //push exception
+            await SendPushoverNotification($"Error occurred downloading {vidTitle} with error: {ex.Message}");
+        }
+
         return output;
+    }
+
+    static async Task<bool> SendPushoverNotification(string message)
+    {
+        var token = Environment.GetEnvironmentVariable("PUSHOVER_APP_TOKEN");
+        var key = Environment.GetEnvironmentVariable("PUSHOVER_USER_KEY");
+
+        var parameters = new Dictionary<string, string>
+        {
+            ["token"] = "APP_TOKEN",
+            ["user"] = "USER_KEY",
+            ["message"] = message
+        };
+        using var client = new HttpClient();
+        var response = await client.PostAsync("https://api.pushover.net/1/messages.json", new
+        FormUrlEncodedContent(parameters));
+
+        if(response.IsSuccessStatusCode)
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
     }
 }
