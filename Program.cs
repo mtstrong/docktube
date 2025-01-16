@@ -24,19 +24,22 @@ class Program
         var technoTimeFile = await GetAudioFileFromYoutubePlaylist("https://youtube.com/channel/UCEv-LBP68lHl3JNJ25RT16g"); 
         podcastFiles.Add(technoTimeFile);
 
-        CopyToShare(podcastFiles);
+        await CopyToShare(podcastFiles);
     }
 
-    static void CopyToShare(List<string> files)
+    static async Task CopyToShare(List<string> files)
     {
-        // Get folder Node.
-        string smbPath = Environment.GetEnvironmentVariable("SMB_PATH");
-        string user = Environment.GetEnvironmentVariable("SMB_USER");
-        string password = Environment.GetEnvironmentVariable("SMB_PASSWORD");
-        var folder = await EzSmb.Node.GetNode(smbPath, user, password);
-        var fs = System.IO.File.Open(podcastFile, FileMode.Open, FileAccess.Read, FileShare.None);
-        var ok = await folder.Write(fs, podcastFile);
-        Console.WriteLine($"File operation: {ok}");
+        foreach (string podcastFile in files)
+        {
+            // Get folder Node.
+            string smbPath = Environment.GetEnvironmentVariable("SMB_PATH");
+            string user = Environment.GetEnvironmentVariable("SMB_USER");
+            string password = Environment.GetEnvironmentVariable("SMB_PASSWORD");
+            var folder = await EzSmb.Node.GetNode(smbPath, user, password);
+            var fs = System.IO.File.Open(podcastFile, FileMode.Open, FileAccess.Read, FileShare.None);
+            var ok = await folder.Write(fs, podcastFile);
+            Console.WriteLine($"File operation: {ok}");
+        }
     }
 
     static async Task<string> GetAudioFileFromYoutubePlaylist(string channelUrl)
