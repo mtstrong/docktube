@@ -110,8 +110,7 @@ class Program
             ["message"] = message
         };
         using var client = new HttpClient();
-        var response = await client.PostAsync("https://api.pushover.net/1/messages.json", new
-        FormUrlEncodedContent(parameters));
+        var response = await client.PostAsync("https://api.pushover.net/1/messages.json", new FormUrlEncodedContent(parameters));
 
         return response.IsSuccessStatusCode;
     }
