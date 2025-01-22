@@ -56,6 +56,19 @@ class Program
             }
         }
 
+        var spartanMagFile= await GetAudioFileFromYoutubePlaylist("https://youtube.com/channel/UC0xVROMibRvwwWSbR6BGmKQ");
+        if (!String.IsNullOrEmpty(spartanMagFile))
+        {
+            if (await CheckIfFileExists(spartanMagFile))
+            {
+                Console.WriteLine($"{spartanMagFile} already exists in share");
+            }
+            else
+            {
+                podcastFiles.Add(spartanMagFile);
+            }
+        }
+
         await CopyToShare(podcastFiles);
     }
 
