@@ -21,19 +21,52 @@ class Program
         var calebHammerFile = await GetAudioFileFromYoutubePlaylist("https://youtube.com/channel/UCLe_q9axMaeTbjN0hy1Z9xA");
         if (!String.IsNullOrEmpty(calebHammerFile))
         {
-            podcastFiles.Add(calebHammerFile);
+            if(await CheckIfFileExists(calebHammerFile))
+            {
+                Console.WriteLine($"{calebHammerFile} already exists in share");
+            }
+            else
+            {
+                podcastFiles.Add(calebHammerFile);
+            }
         }
         var calebHammerUpdateFile = await GetAudioFileFromYoutubePlaylist("https://youtube.com/channel/UCAqAp1uh_5-tmEimhSqtoyw");
         if (!String.IsNullOrEmpty(calebHammerUpdateFile))
         {
-            podcastFiles.Add(calebHammerUpdateFile);
+            if (await CheckIfFileExists(calebHammerUpdateFile))
+            {
+                Console.WriteLine($"{calebHammerUpdateFile} already exists in share");
+            }
+            else
+            {
+                podcastFiles.Add(calebHammerUpdateFile);
+            }
         }
 
-        //issues with live feeds
-        //var technoTimeFile = await GetAudioFileFromYoutubePlaylist("https://youtube.com/channel/UCEv-LBP68lHl3JNJ25RT16g"); 
-        //podcastFiles.Add(technoTimeFile);
+        var technoTimeFile = await GetAudioFileFromYoutubePlaylist("https://youtube.com/channel/UCEv-LBP68lHl3JNJ25RT16g");
+        if (!String.IsNullOrEmpty(technoTimeFile))
+        {
+            if (await CheckIfFileExists(technoTimeFile))
+            {
+                Console.WriteLine($"{technoTimeFile} already exists in share");
+            }
+            else
+            {
+                podcastFiles.Add(technoTimeFile);
+            }
+        }
 
         await CopyToShare(podcastFiles);
+    }
+
+    static async Task<bool> CheckIfFileExists(string fileName)
+    {
+        string smbPath = Environment.GetEnvironmentVariable("SMB_PATH");
+        string user = Environment.GetEnvironmentVariable("SMB_USER");
+        string password = Environment.GetEnvironmentVariable("SMB_PASSWORD");
+        var folder = await EzSmb.Node.GetNode(smbPath, user, password);
+        var files = await folder.GetList();
+        return files.Any(x => x.Name == fileName);
     }
 
     static async Task CopyToShare(List<string> files)
